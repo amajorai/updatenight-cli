@@ -1,11 +1,11 @@
 # Update Night CLI
 
-Terminal UI for browsing the Update Night catalog of AI dev tools, skills, and MCP servers.
+Terminal UI for browsing the Update Night catalog of AI dev tools, agent frameworks, MCP servers, and AI news.
 
 ## Install
 
 ```
-cargo install --git https://github.com/amajorai/updatenight-cli
+cargo install --git https://github.com/amajorai/updatenight-cli --bin un
 ```
 
 Or build from source:
@@ -17,12 +17,23 @@ cargo build --release
 # binary at target/release/un (or un.exe on Windows)
 ```
 
+Move the binary somewhere on your PATH:
+
+```
+# macOS / Linux
+sudo mv target/release/un /usr/local/bin/un
+
+# Windows (run as admin, or any directory on PATH)
+move target\release\un.exe C:\Windows\System32\un.exe
+```
+
 ## Usage
 
 ```
 un           # open the TUI
 un login     # authenticate with your Update Night account
 un logout    # remove stored credentials
+un --help    # show help
 ```
 
 ## Tabs
@@ -55,6 +66,8 @@ Agent Frameworks, TypeScript, Python, LLMs, Embeddings, Vector DBs, RAG, MCP Ser
 ## Authentication
 
 Run `un login` to start a device authorization flow. The CLI opens your browser to the Update Night authorization page and polls for approval. The token is saved to `~/.config/updatenight/config.json` (Linux/macOS) or `%APPDATA%\updatenight\config.json` (Windows).
+
+Authenticated users get semantic search in addition to text search.
 
 ## Configuration
 
