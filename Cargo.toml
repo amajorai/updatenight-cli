@@ -4,6 +4,16 @@ version = "0.1.0"
 edition = "2021"
 description = "Update Night CLI — browse AI dev tools from your terminal"
 license = "MIT"
+repository = "https://github.com/amajorai/updatenight-cli"
+
+[package.metadata.binstall]
+pkg-url = "https://github.com/amajorai/updatenight-cli/releases/download/v{ version }/un-{ target }.tar.gz"
+bin-dir = "un{ binary-ext }"
+pkg-fmt = "tgz"
+
+[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-url = "https://github.com/amajorai/updatenight-cli/releases/download/v{ version }/un-{ target }.zip"
+pkg-fmt = "zip"
 
 [[bin]]
 name = "un"

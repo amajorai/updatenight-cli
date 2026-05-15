@@ -1,30 +1,73 @@
 # Update Night CLI
 
+[![Release](https://github.com/amajorai/updatenight-cli/actions/workflows/release.yml/badge.svg)](https://github.com/amajorai/updatenight-cli/actions/workflows/release.yml)
+
 Terminal UI for browsing the Update Night catalog of AI dev tools, agent frameworks, MCP servers, and AI news.
 
 ## Install
 
+### Option 1 — cargo-binstall (pre-built binary, fastest)
+
+```sh
+cargo binstall un
 ```
+
+Installs the pre-built binary for your platform. Get `cargo-binstall` from [cargo-bins/cargo-binstall](https://github.com/cargo-bins/cargo-binstall) if you don't have it.
+
+### Option 2 — Download binary
+
+Go to [Releases](https://github.com/amajorai/updatenight-cli/releases) and grab the archive for your platform:
+
+| Platform | File |
+|----------|------|
+| macOS Apple Silicon | `un-aarch64-apple-darwin.tar.gz` |
+| macOS Intel | `un-x86_64-apple-darwin.tar.gz` |
+| Linux x86_64 | `un-x86_64-unknown-linux-gnu.tar.gz` |
+| Linux ARM64 | `un-aarch64-unknown-linux-gnu.tar.gz` |
+| Windows x86_64 | `un-x86_64-pc-windows-msvc.zip` |
+
+**macOS / Linux:**
+
+```sh
+# Replace <target> with your platform (e.g. aarch64-apple-darwin)
+curl -fsSL https://github.com/amajorai/updatenight-cli/releases/latest/download/un-<target>.tar.gz \
+  | tar xz -C /tmp
+sudo mv /tmp/un /usr/local/bin/un
+```
+
+**Windows (PowerShell):**
+
+```powershell
+# Run as Administrator
+$target = "x86_64-pc-windows-msvc"
+$url = "https://github.com/amajorai/updatenight-cli/releases/latest/download/un-$target.zip"
+Invoke-WebRequest $url -OutFile "$env:TEMP\un.zip"
+Expand-Archive "$env:TEMP\un.zip" -DestinationPath "$env:TEMP\un-bin"
+Move-Item "$env:TEMP\un-bin\un.exe" "C:\Windows\System32\un.exe"
+```
+
+### Option 3 — Build from source
+
+```sh
 cargo install --git https://github.com/amajorai/updatenight-cli --bin un
 ```
 
-Or build from source:
+Or clone and build:
 
-```
+```sh
 git clone https://github.com/amajorai/updatenight-cli
 cd updatenight-cli
 cargo build --release
 # binary at target/release/un (or un.exe on Windows)
-```
-
-Move the binary somewhere on your PATH:
-
-```
-# macOS / Linux
 sudo mv target/release/un /usr/local/bin/un
+```
 
-# Windows (run as admin, or any directory on PATH)
-move target\release\un.exe C:\Windows\System32\un.exe
+## Updating
+
+Re-run whichever install method you used. For `cargo-binstall`:
+
+```sh
+cargo binstall un
 ```
 
 ## Usage
@@ -75,5 +118,5 @@ Set `UPDATENIGHT_API_URL` to point at a different API host. Defaults to `https:/
 
 ## Related
 
-- [Update Night MCP](https://github.com/amajorai/updatenight-mcp) -- MCP server for AI assistants to search the catalog
-- [Update Night Skill](https://github.com/amajorai/updatenight-skill) -- Claude Code skill for browsing the catalog from any AI agent
+- [Update Night MCP](https://github.com/amajorai/updatenight-mcp) — MCP server for AI assistants to search the catalog
+- [Update Night Skill](https://github.com/amajorai/updatenight-skill) — Claude Code skill for browsing the catalog from any AI agent
