@@ -203,6 +203,11 @@ impl App {
 }
 
 pub async fn run() -> Result<()> {
+    use std::io::IsTerminal;
+    if !io::stdout().is_terminal() {
+        eprintln!("un: not a terminal — run directly in your shell, not inside turbo dev");
+        return Ok(());
+    }
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen)?;

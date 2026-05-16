@@ -24,15 +24,23 @@ struct TokenResponse {
 pub async fn device_login() -> Result<()> {
     let client = reqwest::Client::new();
     let base = api_base();
+    let url = format!("{}/api/auth/device/code", base);
+    let body = serde_json::json!({ "client_id": "updatenight-cli" });
 
-    let resp: DeviceCodeResponse = client
-        .post(format!("{}/api/auth/device/code", base))
-        .json(&serde_json::json!({ "client_id": "updatenight-cli" }))
-        .send()
-        .await?
-        .error_for_status()?
-        .json()
-        .await?;
+    let resp: DeviceCodeResponse = {
+        let mut attempt = 0u32;
+        loop {
+            match client.post(&url).json(&body).send().await {
+                Ok(r) => break r.error_for_status()?.json::<DeviceCodeResponse>().await?,
+                Err(e) if e.is_connect() && attempt < 15 => {
+                    attempt += 1;
+                    eprintln!("Waiting for server to be ready... ({attempt}/15)");
+                    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                }
+                Err(e) => return Err(e.into()),
+            }
+        }
+    };
 
     println!("\n  Your code:    {}", resp.user_code);
     println!("  Authorize at: {}", resp.verification_uri);
