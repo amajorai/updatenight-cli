@@ -42,12 +42,26 @@ pub async fn device_login() -> Result<()> {
         }
     };
 
-    println!("\n  Your code:    {}", resp.user_code);
-    println!("  Authorize at: {}", resp.verification_uri);
+    println!(
+        "\n  Your code:    {}",
+        crate::security::terminal_text(&resp.user_code)
+    );
+    println!(
+        "  Authorize at: {}",
+        crate::security::terminal_text(&resp.verification_uri)
+    );
     println!("\nOpening browser...\n");
 
-    let verify_url = format!("{}?user_code={}", resp.verification_uri, resp.user_code);
-    let _ = open::that(&verify_url);
+    let mut verify_url = crate::security::http_url(&resp.verification_uri)?;
+    verify_url
+        .query_pairs_mut()
+        .append_pair("user_code", &resp.user_code);
+    if let Err(error) = crate::security::open_url(verify_url.as_str()) {
+        eprintln!(
+            "Open the authorization URL manually: {}",
+            crate::security::terminal_text(&error.to_string())
+        );
+    }
 
     let poll_interval = Duration::from_secs(resp.interval.unwrap_or(5).max(5));
     let deadline = Instant::now() + Duration::from_secs(resp.expires_in);

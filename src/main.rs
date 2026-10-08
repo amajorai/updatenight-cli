@@ -1,6 +1,7 @@
 mod api;
 mod auth;
 mod config;
+mod security;
 mod tui;
 
 use clap::{Parser, Subcommand};
