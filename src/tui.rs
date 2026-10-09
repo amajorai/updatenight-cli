@@ -9,9 +9,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{
-        Block, Borders, Clear, List, ListItem, ListState, Paragraph, Tabs, Wrap,
-    },
+    widgets::{Block, Borders, Clear, List, ListItem, ListState, Paragraph, Tabs, Wrap},
     Frame, Terminal,
 };
 use std::{
@@ -47,11 +45,7 @@ const CATEGORIES: &[(&str, &str)] = &[
     ("other", "Other"),
 ];
 
-const KINDS: &[(&str, &str)] = &[
-    ("tool", "Tools"),
-    ("skill", "Skills"),
-    ("mcp", "MCPs"),
-];
+const KINDS: &[(&str, &str)] = &[("tool", "Tools"), ("skill", "Skills"), ("mcp", "MCPs")];
 
 #[derive(Clone, Copy, PartialEq)]
 enum Tab {
@@ -197,7 +191,7 @@ impl App {
             None
         };
         if let Some(url) = url {
-            let _ = open::that(url);
+            let _ = crate::security::open_url(&url);
         }
     }
 }
@@ -233,8 +227,12 @@ async fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> Resul
         let token = app.token.clone();
         tokio::spawn(async move {
             match crate::api::get_news(7, token.as_deref()).await {
-                Ok(items) => { let _ = tx.send(ApiMsg::NewsDone(items)).await; }
-                Err(e) => { let _ = tx.send(ApiMsg::Error(e.to_string())).await; }
+                Ok(items) => {
+                    let _ = tx.send(ApiMsg::NewsDone(items)).await;
+                }
+                Err(e) => {
+                    let _ = tx.send(ApiMsg::Error(e.to_string())).await;
+                }
             }
         });
         app.news_loading = true;
@@ -245,7 +243,13 @@ async fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> Resul
     let mut search_debounce: Option<Instant> = None;
 
     loop {
-        terminal.draw(|f| render(f, &mut app))?;
+        terminal.draw(|f| {
+            render(f, &mut app);
+            for cell in &mut f.buffer_mut().content {
+                let safe = crate::security::terminal_text(cell.symbol());
+                cell.set_symbol(&safe);
+            }
+        })?;
 
         // Handle pending API results
         while let Ok(msg) = rx.try_recv() {
@@ -298,8 +302,12 @@ async fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> Resul
                             crate::api::search_entries(&q, token.as_deref()).await
                         };
                         match result {
-                            Ok(items) => { let _ = tx.send(ApiMsg::SearchDone(items)).await; }
-                            Err(e) => { let _ = tx.send(ApiMsg::Error(e.to_string())).await; }
+                            Ok(items) => {
+                                let _ = tx.send(ApiMsg::SearchDone(items)).await;
+                            }
+                            Err(e) => {
+                                let _ = tx.send(ApiMsg::Error(e.to_string())).await;
+                            }
                         }
                     });
                     app.search_loading = true;
@@ -352,7 +360,10 @@ async fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> Resul
                         Tab::News => Tab::Browse,
                         Tab::Browse => Tab::Search,
                     };
-                    if app.tab == Tab::Browse && app.browse_results.is_empty() && !app.browse_loading {
+                    if app.tab == Tab::Browse
+                        && app.browse_results.is_empty()
+                        && !app.browse_loading
+                    {
                         fire_browse(&tx, &mut app).await;
                     }
                     continue;
@@ -372,7 +383,10 @@ async fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> Resul
                         '3' => Tab::Browse,
                         _ => app.tab,
                     };
-                    if app.tab == Tab::Browse && app.browse_results.is_empty() && !app.browse_loading {
+                    if app.tab == Tab::Browse
+                        && app.browse_results.is_empty()
+                        && !app.browse_loading
+                    {
                         fire_browse(&tx, &mut app).await;
                     }
                     continue;
@@ -455,8 +469,12 @@ async fn fire_browse(tx: &mpsc::Sender<ApiMsg>, app: &mut App) {
     let tx = tx.clone();
     tokio::spawn(async move {
         match crate::api::list_by_category(&kind, &cat, token.as_deref()).await {
-            Ok(items) => { let _ = tx.send(ApiMsg::BrowseDone(items)).await; }
-            Err(e) => { let _ = tx.send(ApiMsg::Error(e.to_string())).await; }
+            Ok(items) => {
+                let _ = tx.send(ApiMsg::BrowseDone(items)).await;
+            }
+            Err(e) => {
+                let _ = tx.send(ApiMsg::Error(e.to_string())).await;
+            }
         }
     });
     app.browse_loading = true;
@@ -567,9 +585,10 @@ fn render_news(f: &mut Frame, app: &mut App, area: Rect) {
             let date = n.posted_at.get(..10).unwrap_or("");
             let topics = n.topics.join(", ");
             ListItem::new(vec![
-                Line::from(vec![
-                    Span::styled(&n.title, Style::default().add_modifier(Modifier::BOLD)),
-                ]),
+                Line::from(vec![Span::styled(
+                    &n.title,
+                    Style::default().add_modifier(Modifier::BOLD),
+                )]),
                 Line::from(vec![
                     Span::styled(date, Style::default().fg(Color::DarkGray)),
                     Span::raw("  "),
@@ -652,7 +671,10 @@ fn render_status(f: &mut Frame, app: &App, area: Rect) {
     let auth_status = if app.token.is_some() {
         Span::styled("● authed", Style::default().fg(Color::Green))
     } else {
-        Span::styled("○ not logged in · run `un login`", Style::default().fg(Color::DarkGray))
+        Span::styled(
+            "○ not logged in · run `un login`",
+            Style::default().fg(Color::DarkGray),
+        )
     };
 
     let msg = app
@@ -686,7 +708,11 @@ fn render_detail(f: &mut Frame, app: &App, area: Rect) {
         ];
 
         if let Some(desc) = &entry.description {
-            for chunk in desc.chars().collect::<Vec<_>>().chunks(popup_area.width as usize - 6) {
+            for chunk in desc
+                .chars()
+                .collect::<Vec<_>>()
+                .chunks(popup_area.width as usize - 6)
+            {
                 lines.push(Line::from(chunk.iter().collect::<String>()));
             }
             lines.push(Line::from(""));

@@ -120,3 +120,5 @@ Set `UPDATENIGHT_API_URL` to point at a different API host. Defaults to `https:/
 
 - [Update Night MCP](https://github.com/amajorai/updatenight-mcp) — MCP server for AI assistants to search the catalog
 - [Update Night Skill](https://github.com/amajorai/updatenight-skill) — Claude Code skill for browsing the catalog from any AI agent
+
+Credential files are saved atomically with owner-only Unix permissions or a protected Windows ACL. Existing credentials are protected when loaded; symlink credentials are rejected. A user configuration directory is required.
