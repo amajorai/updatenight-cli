@@ -239,3 +239,30 @@ mod tests {
         std::fs::remove_dir_all(root).unwrap();
     }
 }
+
+#[cfg(all(test, windows))]
+mod windows_tests {
+    use super::*;
+
+    #[test]
+    fn credentials_are_saved_and_loaded_with_a_private_dacl() {
+        let root = std::env::temp_dir().join(format!(
+            "credential-test-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let path = root.join("app/config.json");
+        let expected = Config {
+            token: Some("test-token".to_owned()),
+        };
+
+        save_to(&path, &expected).unwrap();
+        let actual = load_from(&path).unwrap();
+        assert_eq!(actual.token, expected.token);
+
+        std::fs::remove_dir_all(root).unwrap();
+    }
+}
